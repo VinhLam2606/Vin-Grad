@@ -1,0 +1,400 @@
+.page-shell {
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+}
+
+.hero-stage {
+  position: relative;
+  isolation: isolate;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  flex: 0 0 auto;
+  min-height: 0;
+  place-items: end center;
+  overflow: visible;
+  padding-top: clamp(10px, 3svh, 30px);
+  background:
+    radial-gradient(ellipse at 50% 52%, rgb(184 0 0 / 13%), transparent 48%),
+    linear-gradient(180deg, rgb(5 5 5 / 38%) 0%, rgb(8 6 6 / 32%) 68%, rgb(9 5 5 / 48%) 100%);
+}
+
+.graduate {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: min(100%, 940px);
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 14px;
+  text-align: center;
+  animation: graduate-arrive 700ms ease-out both;
+}
+
+.graduate::before {
+  position: absolute;
+  z-index: -1;
+  top: 43%;
+  left: 50%;
+  width: min(82vw, 720px);
+  aspect-ratio: 1.45;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgb(184 0 0 / 23%), rgb(100 0 0 / 10%) 42%, transparent 72%);
+  content: '';
+  filter: blur(22px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.graduate-image {
+  display: block;
+  width: min(112vw, 900px);
+  height: min(76svh, 760px);
+  object-fit: contain;
+  filter:
+    drop-shadow(0 0 2px rgb(255 255 255 / 82%))
+    drop-shadow(0 0 8px rgb(255 32 32 / 68%))
+    drop-shadow(0 16px 25px rgb(0 0 0 / 76%));
+}
+
+@keyframes graduate-arrive {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.marquee-layer {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.marquee-row {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  transform: translateY(-50%);
+  color: #716767;
+  white-space: nowrap;
+}
+
+.marquee-row:nth-child(3n + 1) {
+  color: #8f7777;
+}
+
+.marquee-row:nth-child(4n + 2) {
+  color: #9e4242;
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll var(--duration) linear infinite;
+  will-change: transform;
+}
+
+.marquee-row-reverse .marquee-track {
+  animation-name: marquee-scroll-reverse;
+}
+
+.marquee-copy {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.marquee-phrase {
+  display: inline-flex;
+  align-items: center;
+  padding-inline: 1.2rem;
+  font-family: var(--pixel);
+  font-size: clamp(8px, 1vw, 11px);
+  line-height: 1.8;
+  letter-spacing: 0.035em;
+}
+
+.marquee-separator {
+  padding-left: 2.4rem;
+  color: #6e2020;
+}
+
+@keyframes marquee-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-scroll-reverse {
+  from {
+    transform: translateX(-50%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.wish-form-wrap {
+  position: relative;
+  z-index: 3;
+  width: min(100% - 40px, 1020px);
+  margin: -26px auto 30px;
+  padding: 22px 26px 16px;
+  border: 1px solid rgb(255 240 240 / 82%);
+  border-radius: 22px 8px 20px 10px;
+  background:
+    repeating-linear-gradient(133deg, transparent 0 22px, rgb(255 255 255 / 1.5%) 23px, transparent 24px 38px),
+    radial-gradient(ellipse at 100% 0%, rgb(184 0 0 / 19%), transparent 52%),
+    linear-gradient(140deg, rgb(11 9 9 / 91%) 0%, rgb(5 5 5 / 88%) 55%, rgb(16 7 7 / 91%) 100%);
+  box-shadow:
+    0 0 0 2px rgb(184 0 0 / 88%),
+    0 0 24px rgb(255 24 24 / 24%),
+    0 14px 35px rgb(0 0 0 / 68%),
+    inset 0 1px 0 rgb(255 255 255 / 12%);
+  transform: rotate(-0.35deg);
+}
+
+.wish-form-wrap > .wish-form,
+.wish-form-wrap > .form-notice {
+  transform: rotate(0.35deg);
+}
+
+.wish-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.8fr) minmax(300px, 2fr) auto;
+  align-items: end;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+  color: #d1c5c5;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.field-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field-label > span {
+  color: #873434;
+  font-size: 0.57rem;
+  letter-spacing: 0.08em;
+}
+
+.field-control {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  border: 1px solid #792222;
+  border-radius: 10px 4px 9px 5px;
+  background: rgb(5 5 5 / 92%);
+  transition: border-color 240ms ease, box-shadow 240ms ease, background 240ms ease;
+}
+
+.field-control:focus-within {
+  border-color: #ff3030;
+  background: #100909;
+  box-shadow: 0 0 0 1px rgb(255 32 32 / 22%), 0 0 18px rgb(184 0 0 / 18%);
+}
+
+.field input,
+.field textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #f7eeee;
+  font: 400 0.94rem/1.5 var(--sans);
+  letter-spacing: normal;
+  text-transform: none;
+  transition: color 240ms ease;
+}
+
+.field input {
+  height: 52px;
+  padding: 0 15px 0 42px;
+}
+
+.field textarea {
+  min-height: 52px;
+  max-height: 120px;
+  padding: 14px 42px 12px 16px;
+  resize: vertical;
+}
+
+.field-control-name input:focus,
+.field-control-message textarea:focus {
+  outline: none;
+}
+
+.field-icon {
+  position: absolute;
+  left: 14px;
+  width: 17px;
+  height: 17px;
+  stroke: #e34848;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+  pointer-events: none;
+}
+
+.field-icon-trailing {
+  right: 14px;
+  left: auto;
+  width: 16px;
+  height: 16px;
+  stroke: #a83b3b;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #9e8c8c;
+  opacity: 1;
+}
+
+.wish-submit {
+  display: inline-flex;
+  min-width: 112px;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  padding: 0 23px;
+  border: 0;
+  background: linear-gradient(115deg, #b80000, #e01616 62%, #b80000);
+  color: #fff;
+  cursor: pointer;
+  font: 700 0.92rem var(--sans);
+  letter-spacing: 0.08em;
+  box-shadow: 0 5px 17px rgb(184 0 0 / 22%), inset 0 1px 0 rgb(255 255 255 / 16%);
+  clip-path: polygon(0 0, calc(100% - 11px) 0, 100% 11px, 100% 100%, 0 100%);
+  transition: background 240ms ease, box-shadow 240ms ease, transform 240ms ease;
+}
+
+.wish-submit svg {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.wish-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: linear-gradient(115deg, #dc1010, #ff3030 62%, #dc1010);
+  box-shadow: 0 7px 24px rgb(255 32 32 / 30%), inset 0 1px 0 rgb(255 255 255 / 20%);
+}
+
+.wish-submit:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgb(184 0 0 / 28%);
+}
+
+.wish-submit:focus-visible {
+  outline: 2px solid #ff5757;
+  outline-offset: 3px;
+}
+
+.wish-submit:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.form-notice {
+  min-height: 1.25em;
+  margin: 8px 2px 0;
+  color: #a89494;
+  font-size: 0.78rem;
+  text-align: right;
+}
+
+.form-notice[data-kind='success'] {
+  color: #f0b0b0;
+}
+
+.form-notice[data-kind='error'] {
+  color: #ff8585;
+}
+
+@media (max-width: 620px) {
+  .hero-stage {
+    padding-top: 8px;
+  }
+
+  .graduate {
+    padding-inline: 0;
+  }
+
+  .graduate-image {
+    width: min(124vw, 560px);
+    height: min(59svh, 510px);
+  }
+
+  .wish-form-wrap {
+    width: min(100% - 32px, 460px);
+    margin-top: -24px;
+    padding: 20px 17px 14px;
+    border-radius: 18px 7px 17px 8px;
+  }
+
+  .wish-form {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .wish-submit {
+    width: 100%;
+  }
+
+  .form-notice {
+    text-align: left;
+  }
+}
+
+@media (min-width: 1000px) and (min-height: 800px) {
+  .graduate-image {
+    height: min(74svh, 700px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .marquee-track {
+    animation: none;
+    transform: none;
+  }
+
+  .marquee-copy + .marquee-copy {
+    display: none;
+  }
+}
