@@ -41,7 +41,7 @@ Vite hiển thị URL local, thường là `http://localhost:5173`. `npm run bui
 5. Điền các giá trị Web App vào `.env.local` theo các tên `VITE_FIREBASE_*` trong `.env.example`. Không commit `.env.local`.
 6. Chạy lại `npm run dev` sau khi thay đổi biến môi trường. `VITE_*` được nhúng vào bundle khi build; các giá trị này có thể được người truy cập nhìn thấy. Firebase Web API key không phải bí mật hay cơ chế phân quyền. Không đặt service-account key, private key hoặc thông tin xác thực máy chủ trong frontend.
 
-Ứng dụng dùng collection `wishes` với các trường `name`, `message`, `createdAt`. Lắng nghe `onSnapshot()` để đồng bộ mọi lời chúc và dùng `serverTimestamp()` khi tạo document. Nếu chưa có cấu hình Firebase, trang vẫn hiển thị nhưng form báo cần cấu hình.
+Ứng dụng dùng collection `wishes` với các trường `name`, `message`, `createdAt`; lời chúc mới và tên người gửi được tạo cùng transaction. Collection `wishNames` giữ chỗ tên đã dùng, nên tên trùng chính xác (sau khi bỏ khoảng trắng ở đầu/cuối) không thể gửi lần nữa. Tên phân biệt chữ hoa/chữ thường. Khi gặp tên đã có từ trước lúc bật tính năng này, ứng dụng sẽ giữ chỗ tên cũ và từ chối lần gửi trùng đó. Lắng nghe `onSnapshot()` để đồng bộ mọi lời chúc và dùng `serverTimestamp()` khi tạo document. Nếu chưa có cấu hình Firebase, trang vẫn hiển thị nhưng form báo cần cấu hình.
 
 ## Kiểm thử Firestore Security Rules bằng Emulator
 
@@ -59,7 +59,7 @@ Terminal 2 — chạy test rules:
 npm run test:rules
 ```
 
-Test xác nhận public read và create hợp lệ được phép; tên/câu chúc quá dài, trường thừa, timestamp do client tự đặt, update và delete bị từ chối. Emulator UI có tại `http://127.0.0.1:4000`.
+Test xác nhận public read và create hợp lệ theo transaction được phép; tên trùng, tên/câu chúc quá dài, trường thừa, timestamp do client tự đặt, update và delete bị từ chối. Emulator UI có tại `http://127.0.0.1:4000`.
 
 Có thể thử giao diện gửi vào Emulator thay vì database production: giữ Emulator đang chạy, đặt `VITE_USE_FIREBASE_EMULATOR=true` trong `.env.local`, rồi chạy `npm run dev`. Kết nối Emulator chỉ được kích hoạt trong chế độ development. Bỏ cấu hình này hoặc đặt `false` để chạy với Firebase thật.
 
@@ -92,7 +92,7 @@ Dùng GitHub Secrets giúp cấu hình build mà không commit `.env.local`, nh�
 
 ## Bảo mật và chống spam trước khi công khai
 
-- Rules chỉ cho phép đọc và tạo đúng ba trường; tên và lời chúc phải là chuỗi không rỗng với giới hạn tương ứng 40/300 ký tự; `createdAt` phải bằng thời gian request của máy chủ. Mọi cập nhật và xóa bị từ chối.
+- Rules chỉ cho phép đọc và tạo đúng ba trường; tên và lời chúc phải là chuỗi không rỗng với giới hạn tương ứng 16/80 ký tự; `createdAt` phải bằng thời gian request của máy chủ. Mọi cập nhật và xóa bị từ chối.
 - Giới hạn ở form/frontend chỉ giúp trải nghiệm tốt hơn, **không** bảo vệ database. Rules là hàng rào bắt buộc phía máy chủ, nhưng một endpoint public cho phép tạo document hợp lệ vẫn có thể bị spam.
 - Trước khi quảng bá rộng, bật Firebase App Check cho Web bằng reCAPTCHA Enterprise (đăng ký app, cấu hình provider và enforce cho Cloud Firestore sau khi xác minh metrics). Có thể bổ sung rate limiting phía máy chủ qua callable Cloud Function/API, kiểm duyệt hoặc cơ chế xác thực nếu cần; không thể làm rate limit đáng tin cậy chỉ bằng code trình duyệt.
 - Không cấp quyền `update`/`delete` cho khách truy cập ẩn danh và không đưa service account credentials lên GitHub.

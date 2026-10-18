@@ -1,13 +1,17 @@
 import { initializeApp } from 'firebase/app'
 import {
-  addDoc,
   collection,
   connectFirestoreEmulator,
+  doc,
+  getDocs,
   getFirestore,
+  limit,
   onSnapshot,
   orderBy,
   query,
+  runTransaction,
   serverTimestamp,
+  where,
 } from 'firebase/firestore'
 
 const firebaseConfig = {
@@ -65,17 +69,50 @@ function getFirestoreErrorMessage(error) {
 
 export async function createWish(name, message) {
   if (!db) throw new Error('Firebase chưa được cấu hình. Hãy thêm các biến VITE_FIREBASE_* trước khi gửi.')
-  if (!name || name.length > 40 || !message || message.length > 300) {
-    throw new Error('Tên và câu chúc phải hợp lệ, lần lượt tối đa 40 và 300 ký tự.')
+  const cleanName = name.trim()
+  const cleanMessage = message.trim()
+
+  if (!cleanName || cleanName.length > 16 || cleanName.includes('/') || cleanName === '.' || cleanName === '..' || !cleanMessage || cleanMessage.length > 80) {
+    throw new Error('Tên và câu chúc phải hợp lệ, lần lượt tối đa 16 và 80 ký tự.')
   }
 
+  const wishesRef = collection(db, 'wishes')
+  const nameRef = doc(db, 'wishNames', cleanName)
+  const wishRef = doc(wishesRef)
+
   try {
-    await addDoc(collection(db, 'wishes'), {
-      name,
-      message,
-      createdAt: serverTimestamp(),
+    const matchingWishes = await getDocs(query(wishesRef, where('name', '==', cleanName), limit(1)))
+    const existingWish = matchingWishes.docs[0]
+
+    await runTransaction(db, async (transaction) => {
+      const existingName = await transaction.get(nameRef)
+      if (existingName.exists()) {
+        const duplicateError = new Error('Tên người gửi này đã được sử dụng. Vui lòng chọn tên khác.')
+        duplicateError.code = 'wish/name-already-used'
+        throw duplicateError
+      }
+
+      transaction.set(nameRef, {
+        name: cleanName,
+        wishId: existingWish ? existingWish.id : wishRef.id,
+      })
+      if (existingWish) {
+        return
+      }
+
+      transaction.set(wishRef, {
+        name: cleanName,
+        message: cleanMessage,
+        createdAt: serverTimestamp(),
+      })
     })
+    if (existingWish) {
+      const duplicateError = new Error('Tên người gửi này đã được sử dụng. Vui lòng chọn tên khác.')
+      duplicateError.code = 'wish/name-already-used'
+      throw duplicateError
+    }
   } catch (error) {
+    if (error.code === 'wish/name-already-used') throw error
     throw new Error(getFirestoreErrorMessage(error))
   }
 }

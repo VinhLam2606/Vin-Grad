@@ -9,6 +9,7 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  writeBatch,
 } from 'firebase/firestore'
 
 const projectId = 'demo-vin-grad'
@@ -37,54 +38,129 @@ test('any visitor can read wishes', async () => {
 
 test('visitor can create a well-formed wish with server timestamp', async () => {
   const db = testEnvironment.unauthenticatedContext().firestore()
-  await assertSucceeds(setDoc(doc(db, 'wishes', 'valid'), {
+  const batch = writeBatch(db)
+  batch.set(doc(db, 'wishes', 'valid'), {
     name: 'Minh Anh',
     message: 'Chúc Vinh luôn thành công!',
     createdAt: serverTimestamp(),
-  }))
+  })
+  batch.set(doc(db, 'wishNames', 'Minh Anh'), { name: 'Minh Anh', wishId: 'valid' })
+  await assertSucceeds(batch.commit())
 })
 
 test('rules reject empty, oversized, or extra fields', async () => {
   const db = testEnvironment.unauthenticatedContext().firestore()
-  const wishes = collection(db, 'wishes')
-
-  await assertFails(setDoc(doc(wishes, 'empty'), {
+  const batch = writeBatch(db)
+  batch.set(doc(db, 'wishes', 'empty'), {
     name: ' ',
     message: 'Xin chúc mừng!',
     createdAt: serverTimestamp(),
-  }))
-  await assertFails(setDoc(doc(wishes, 'long-name'), {
-    name: 'N'.repeat(41),
+  })
+  batch.set(doc(db, 'wishNames', ' '), { name: ' ', wishId: 'empty' })
+  await assertFails(batch.commit())
+
+  const longName = writeBatch(db)
+  longName.set(doc(db, 'wishes', 'long-name'), {
+    name: 'N'.repeat(17),
     message: 'Xin chúc mừng!',
     createdAt: serverTimestamp(),
-  }))
-  await assertFails(setDoc(doc(wishes, 'long-message'), {
+  })
+  longName.set(doc(db, 'wishNames', 'N'.repeat(17)), { name: 'N'.repeat(17), wishId: 'long-name' })
+  await assertFails(longName.commit())
+
+  const longMessage = writeBatch(db)
+  longMessage.set(doc(db, 'wishes', 'long-message'), {
     name: 'Minh Anh',
-    message: 'M'.repeat(301),
+    message: 'M'.repeat(81),
     createdAt: serverTimestamp(),
-  }))
-  await assertFails(setDoc(doc(wishes, 'extra-field'), {
+  })
+  longMessage.set(doc(db, 'wishNames', 'Minh Anh'), { name: 'Minh Anh', wishId: 'long-message' })
+  await assertFails(longMessage.commit())
+
+  const extraField = writeBatch(db)
+  extraField.set(doc(db, 'wishes', 'extra-field'), {
     name: 'Minh Anh',
     message: 'Xin chúc mừng!',
     createdAt: serverTimestamp(),
     isAdmin: true,
+  })
+  extraField.set(doc(db, 'wishNames', 'Minh Anh'), { name: 'Minh Anh', wishId: 'extra-field' })
+  await assertFails(extraField.commit())
+})
+
+test('a sender name can only be reserved once', async () => {
+  const db = testEnvironment.unauthenticatedContext().firestore()
+  const firstWish = writeBatch(db)
+  firstWish.set(doc(db, 'wishes', 'first'), {
+    name: 'Minh Anh',
+    message: 'Xin chúc mừng!',
+    createdAt: serverTimestamp(),
+  })
+  firstWish.set(doc(db, 'wishNames', 'Minh Anh'), { name: 'Minh Anh', wishId: 'first' })
+  await assertSucceeds(firstWish.commit())
+
+  const duplicateWish = writeBatch(db)
+  duplicateWish.set(doc(db, 'wishes', 'second'), {
+    name: 'Minh Anh',
+    message: 'Một lời chúc khác!',
+    createdAt: serverTimestamp(),
+  })
+  duplicateWish.set(doc(db, 'wishNames', 'Minh Anh'), { name: 'Minh Anh', wishId: 'second' })
+  await assertFails(duplicateWish.commit())
+})
+
+test('an existing wish name can be reserved but not reused', async () => {
+  await testEnvironment.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), 'wishes', 'legacy'), {
+      name: 'Legacy Name',
+      message: 'Lời chúc cũ',
+      createdAt: new Date(),
+    })
+  })
+
+  const db = testEnvironment.unauthenticatedContext().firestore()
+  await assertSucceeds(setDoc(doc(db, 'wishNames', 'Legacy Name'), {
+    name: 'Legacy Name',
+    wishId: 'legacy',
   }))
+
+  const duplicateWish = writeBatch(db)
+  duplicateWish.set(doc(db, 'wishes', 'second-legacy'), {
+    name: 'Legacy Name',
+    message: 'Lời chúc khác',
+    createdAt: serverTimestamp(),
+  })
+  duplicateWish.set(doc(db, 'wishNames', 'Legacy Name'), {
+    name: 'Legacy Name',
+    wishId: 'second-legacy',
+  })
+  await assertFails(duplicateWish.commit())
 })
 
 test('rules reject client timestamps and all updates or deletes', async () => {
   const db = testEnvironment.unauthenticatedContext().firestore()
   const wishRef = doc(db, 'wishes', 'immutable')
+  const nameRef = doc(db, 'wishNames', 'Minh Anh')
 
-  await assertFails(setDoc(wishRef, {
+  const invalidTimestamp = writeBatch(db)
+  invalidTimestamp.set(wishRef, {
     name: 'Minh Anh',
     message: 'Xin chúc mừng!',
     createdAt: new Date(),
-  }))
-  await assertSucceeds(setDoc(wishRef, {
+  })
+  invalidTimestamp.set(nameRef, { name: 'Minh Anh', wishId: 'immutable' })
+  await assertFails(invalidTimestamp.commit())
+
+  const validWish = writeBatch(db)
+  validWish.set(wishRef, {
     name: 'Minh Anh',
     message: 'Xin chúc mừng!',
     createdAt: serverTimestamp(),
-  }))
+  })
+  validWish.set(nameRef, { name: 'Minh Anh', wishId: 'immutable' })
+  await assertSucceeds(validWish.commit())
   await assertFails(updateDoc(wishRef, { message: 'Đã bị sửa' }))
   await assertFails(deleteDoc(wishRef))
+  await assertFails(updateDoc(nameRef, { name: 'Tên mới' }))
+  await assertFails(deleteDoc(nameRef))
 })

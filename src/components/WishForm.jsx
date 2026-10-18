@@ -19,8 +19,8 @@ function WishForm({ connectionError }) {
       return
     }
 
-    if (cleanName.length > 40 || cleanMessage.length > 300) {
-      setNotice({ type: 'error', text: 'Tên tối đa 40 ký tự, câu chúc tối đa 300 ký tự.' })
+    if (cleanName.length > 16 || cleanMessage.length > 80) {
+      setNotice({ type: 'error', text: 'Tên tối đa 16 ký tự, câu chúc tối đa 80 ký tự.' })
       return
     }
 
@@ -50,7 +50,7 @@ function WishForm({ connectionError }) {
     <footer className="wish-form-wrap">
       <form className="wish-form" onSubmit={handleSubmit}>
         <label className="field">
-          <span className="field-label">Người gửi <span>01</span></span>
+          <span className="field-label">Người gửi</span>
           <span className="field-control field-control-name">
             <svg className="field-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="12" cy="8" r="3.25" />
@@ -58,7 +58,7 @@ function WishForm({ connectionError }) {
             </svg>
             <input
               autoComplete="name"
-              maxLength={40}
+              maxLength={16}
               name="name"
               onChange={(event) => setName(event.target.value)}
               placeholder="Tên của bạn"
@@ -68,10 +68,10 @@ function WishForm({ connectionError }) {
           </span>
         </label>
         <label className="field">
-          <span className="field-label">Lời nhắn <span>02</span></span>
+          <span className="field-label">Lời nhắn</span>
           <span className="field-control field-control-message">
             <textarea
-              maxLength={300}
+              maxLength={80}
               name="message"
               onChange={(event) => setMessage(event.target.value)}
               placeholder="Gửi một lời chúc đến Vinh"

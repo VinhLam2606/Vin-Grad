@@ -7,10 +7,18 @@ const SAMPLE_WISHES = [
 ]
 
 const ROW_COUNT = 8
+const MAX_MARQUEE_MESSAGE_LENGTH = 88
+
+function shortenWish(name, message) {
+  const text = `${name}: ${message}`
+  return text.length > MAX_MARQUEE_MESSAGE_LENGTH
+    ? `${text.slice(0, MAX_MARQUEE_MESSAGE_LENGTH - 1).trimEnd()}…`
+    : text
+}
 
 function PixelMarquee({ wishes }) {
   const messages = wishes.length > 0
-    ? wishes.map(({ name, message }) => `${name}: ${message}`)
+    ? wishes.map(({ name, message }) => shortenWish(name, message))
     : SAMPLE_WISHES
 
   return (

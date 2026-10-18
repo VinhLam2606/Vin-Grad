@@ -192,12 +192,6 @@
   justify-content: space-between;
 }
 
-.field-label > span {
-  color: #873434;
-  font-size: 0.57rem;
-  letter-spacing: 0.08em;
-}
-
 .field-control {
   position: relative;
   display: flex;
