@@ -44,7 +44,11 @@ test('visitor can create a well-formed wish with server timestamp', async () => 
     message: 'Chúc Vinh luôn thành công!',
     createdAt: serverTimestamp(),
   })
-  batch.set(doc(db, 'wishNames', 'Minh Anh'), { name: 'Minh Anh', wishId: 'valid' })
+  batch.set(doc(db, 'wishNames', 'Minh Anh'), {
+    name: 'Minh Anh',
+    message: 'Chúc Vinh luôn thành công!',
+    wishId: 'valid',
+  })
   await assertSucceeds(batch.commit())
 })
 
@@ -56,7 +60,7 @@ test('rules reject empty, oversized, or extra fields', async () => {
     message: 'Xin chúc mừng!',
     createdAt: serverTimestamp(),
   })
-  batch.set(doc(db, 'wishNames', ' '), { name: ' ', wishId: 'empty' })
+  batch.set(doc(db, 'wishNames', ' '), { name: ' ', message: 'Xin chúc mừng!', wishId: 'empty' })
   await assertFails(batch.commit())
 
   const longName = writeBatch(db)
@@ -65,7 +69,11 @@ test('rules reject empty, oversized, or extra fields', async () => {
     message: 'Xin chúc mừng!',
     createdAt: serverTimestamp(),
   })
-  longName.set(doc(db, 'wishNames', 'N'.repeat(17)), { name: 'N'.repeat(17), wishId: 'long-name' })
+  longName.set(doc(db, 'wishNames', 'N'.repeat(17)), {
+    name: 'N'.repeat(17),
+    message: 'Xin chúc mừng!',
+    wishId: 'long-name',
+  })
   await assertFails(longName.commit())
 
   const longMessage = writeBatch(db)
@@ -74,7 +82,11 @@ test('rules reject empty, oversized, or extra fields', async () => {
     message: 'M'.repeat(81),
     createdAt: serverTimestamp(),
   })
-  longMessage.set(doc(db, 'wishNames', 'Minh Anh'), { name: 'Minh Anh', wishId: 'long-message' })
+  longMessage.set(doc(db, 'wishNames', 'Minh Anh'), {
+    name: 'Minh Anh',
+    message: 'M'.repeat(81),
+    wishId: 'long-message',
+  })
   await assertFails(longMessage.commit())
 
   const extraField = writeBatch(db)
@@ -84,7 +96,11 @@ test('rules reject empty, oversized, or extra fields', async () => {
     createdAt: serverTimestamp(),
     isAdmin: true,
   })
-  extraField.set(doc(db, 'wishNames', 'Minh Anh'), { name: 'Minh Anh', wishId: 'extra-field' })
+  extraField.set(doc(db, 'wishNames', 'Minh Anh'), {
+    name: 'Minh Anh',
+    message: 'Xin chúc mừng!',
+    wishId: 'extra-field',
+  })
   await assertFails(extraField.commit())
 })
 
@@ -96,7 +112,11 @@ test('a sender name can only be reserved once', async () => {
     message: 'Xin chúc mừng!',
     createdAt: serverTimestamp(),
   })
-  firstWish.set(doc(db, 'wishNames', 'Minh Anh'), { name: 'Minh Anh', wishId: 'first' })
+  firstWish.set(doc(db, 'wishNames', 'Minh Anh'), {
+    name: 'Minh Anh',
+    message: 'Xin chúc mừng!',
+    wishId: 'first',
+  })
   await assertSucceeds(firstWish.commit())
 
   const duplicateWish = writeBatch(db)
@@ -105,7 +125,11 @@ test('a sender name can only be reserved once', async () => {
     message: 'Một lời chúc khác!',
     createdAt: serverTimestamp(),
   })
-  duplicateWish.set(doc(db, 'wishNames', 'Minh Anh'), { name: 'Minh Anh', wishId: 'second' })
+  duplicateWish.set(doc(db, 'wishNames', 'Minh Anh'), {
+    name: 'Minh Anh',
+    message: 'Một lời chúc khác!',
+    wishId: 'second',
+  })
   await assertFails(duplicateWish.commit())
 })
 
@@ -121,6 +145,7 @@ test('an existing wish name can be reserved but not reused', async () => {
   const db = testEnvironment.unauthenticatedContext().firestore()
   await assertSucceeds(setDoc(doc(db, 'wishNames', 'Legacy Name'), {
     name: 'Legacy Name',
+    message: 'Lời chúc cũ',
     wishId: 'legacy',
   }))
 
@@ -132,6 +157,7 @@ test('an existing wish name can be reserved but not reused', async () => {
   })
   duplicateWish.set(doc(db, 'wishNames', 'Legacy Name'), {
     name: 'Legacy Name',
+    message: 'Lời chúc khác',
     wishId: 'second-legacy',
   })
   await assertFails(duplicateWish.commit())
@@ -148,7 +174,7 @@ test('rules reject client timestamps and all updates or deletes', async () => {
     message: 'Xin chúc mừng!',
     createdAt: new Date(),
   })
-  invalidTimestamp.set(nameRef, { name: 'Minh Anh', wishId: 'immutable' })
+  invalidTimestamp.set(nameRef, { name: 'Minh Anh', message: 'Xin chúc mừng!', wishId: 'immutable' })
   await assertFails(invalidTimestamp.commit())
 
   const validWish = writeBatch(db)
@@ -157,7 +183,11 @@ test('rules reject client timestamps and all updates or deletes', async () => {
     message: 'Xin chúc mừng!',
     createdAt: serverTimestamp(),
   })
-  validWish.set(nameRef, { name: 'Minh Anh', wishId: 'immutable' })
+  validWish.set(nameRef, {
+    name: 'Minh Anh',
+    message: 'Xin chúc mừng!',
+    wishId: 'immutable',
+  })
   await assertSucceeds(validWish.commit())
   await assertFails(updateDoc(wishRef, { message: 'Đã bị sửa' }))
   await assertFails(deleteDoc(wishRef))

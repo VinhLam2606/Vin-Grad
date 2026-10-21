@@ -94,6 +94,7 @@ export async function createWish(name, message) {
 
       transaction.set(nameRef, {
         name: cleanName,
+        message: existingWish ? existingWish.data().message : cleanMessage,
         wishId: existingWish ? existingWish.id : wishRef.id,
       })
       if (existingWish) {
