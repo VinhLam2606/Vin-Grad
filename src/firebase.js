@@ -40,7 +40,7 @@ if (db && import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATOR === 
 export function subscribeToWishes(onWishes, onError) {
   if (!db) throw new Error('Firebase chưa được cấu hình.')
 
-  const wishesQuery = query(collection(db, 'wishes'), orderBy('createdAt', 'desc'))
+  const wishesQuery = query(collection(db, 'wishes'), orderBy('createdAt', 'desc'), limit(120))
   return onSnapshot(
     wishesQuery,
     (snapshot) => {

@@ -142,6 +142,12 @@
   align-items: center;
 }
 
+.marquee-pattern {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
 .marquee-phrase {
   display: inline-flex;
   align-items: center;

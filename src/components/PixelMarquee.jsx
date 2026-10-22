@@ -10,6 +10,7 @@ const SAMPLE_WISHES = [
 
 const ROW_COUNT = 8
 const MAX_MARQUEE_MESSAGE_LENGTH = 88
+const MAX_PATTERN_REPEATS = 64
 const MARQUEE_SPEED_PX_PER_SECOND = 38
 
 function shortenWish(name, message) {
@@ -21,7 +22,7 @@ function shortenWish(name, message) {
 
 function MarqueeRow({ messages, rowIndex }) {
   const copyRef = useRef(null)
-  const [motion, setMotion] = useState({ shouldLoop: false, duration: 0 })
+  const [motion, setMotion] = useState({ shouldLoop: false, duration: 0, repeatCount: 1 })
   const isReverse = rowIndex % 2 === 1
 
   useLayoutEffect(() => {
@@ -29,17 +30,25 @@ function MarqueeRow({ messages, rowIndex }) {
     if (!copy) return undefined
 
     function measureCopy() {
-      const copyWidth = copy.scrollWidth
+      const patternWidth = copy.firstElementChild?.scrollWidth || copy.scrollWidth
       const viewportWidth = window.innerWidth
+      const repeatCount = patternWidth > 0
+        ? Math.min(MAX_PATTERN_REPEATS, Math.max(1, Math.ceil(viewportWidth / patternWidth) + 1))
+        : 1
+      const copyWidth = patternWidth * repeatCount
       const shouldLoop = copyWidth > viewportWidth
       const distance = shouldLoop ? copyWidth : viewportWidth + copyWidth
       const duration = distance / MARQUEE_SPEED_PX_PER_SECOND
       setMotion((currentMotion) => {
-        if (currentMotion.shouldLoop === shouldLoop && currentMotion.duration === duration) {
+        if (
+          currentMotion.shouldLoop === shouldLoop &&
+          currentMotion.duration === duration &&
+          currentMotion.repeatCount === repeatCount
+        ) {
           return currentMotion
         }
 
-        return { shouldLoop, duration }
+        return { shouldLoop, duration, repeatCount }
       })
     }
 
@@ -65,19 +74,27 @@ function MarqueeRow({ messages, rowIndex }) {
     >
       <div className={`marquee-track${motion.shouldLoop ? ' marquee-track-seamless' : ' marquee-track-pass'}`}>
         <span className="marquee-copy" ref={copyRef}>
-          {messages.map((message) => (
-            <span className="marquee-phrase" key={message}>
-              {message}
-              <span className="marquee-separator"> ✦ </span>
+          {Array.from({ length: motion.repeatCount }, (_, patternIndex) => (
+            <span className="marquee-pattern" key={patternIndex}>
+              {messages.map((message, messageIndex) => (
+                <span className="marquee-phrase" key={`${patternIndex}-${messageIndex}`}>
+                  {message}
+                  <span className="marquee-separator"> ✦ </span>
+                </span>
+              ))}
             </span>
           ))}
         </span>
         {motion.shouldLoop && (
           <span className="marquee-copy marquee-copy-clone" aria-hidden="true">
-            {messages.map((message) => (
-              <span className="marquee-phrase" key={message}>
-                {message}
-                <span className="marquee-separator"> ✦ </span>
+            {Array.from({ length: motion.repeatCount }, (_, patternIndex) => (
+              <span className="marquee-pattern" key={patternIndex}>
+                {messages.map((message, messageIndex) => (
+                  <span className="marquee-phrase" key={`${patternIndex}-${messageIndex}`}>
+                    {message}
+                    <span className="marquee-separator"> ✦ </span>
+                  </span>
+                ))}
               </span>
             ))}
           </span>
@@ -93,15 +110,22 @@ function PixelMarquee({ wishes }) {
     : SAMPLE_WISHES), [wishes])
   const lanes = useMemo(() => {
     const distributedMessages = Array.from({ length: ROW_COUNT }, () => [])
-    messages.forEach((message, messageIndex) => {
-      distributedMessages[messageIndex % ROW_COUNT].push(message)
-    })
+    if (messages.length < ROW_COUNT) {
+      distributedMessages.forEach((laneMessages, rowIndex) => {
+        const offset = rowIndex % messages.length
+        laneMessages.push(...messages.slice(offset), ...messages.slice(0, offset))
+      })
+    } else {
+      messages.forEach((message, messageIndex) => {
+        distributedMessages[messageIndex % ROW_COUNT].push(message)
+      })
+    }
     return distributedMessages
   }, [messages])
 
   return (
     <div className="marquee-layer" aria-hidden="true">
-      {lanes.filter((laneMessages) => laneMessages.length > 0).map((laneMessages, rowIndex) => (
+      {lanes.map((laneMessages, rowIndex) => (
         <MarqueeRow key={rowIndex} messages={laneMessages} rowIndex={rowIndex} />
       ))}
     </div>
