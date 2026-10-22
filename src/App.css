@@ -96,12 +96,32 @@
 .marquee-track {
   display: flex;
   width: max-content;
-  animation: marquee-scroll var(--duration) linear infinite;
+  animation: marquee-pass var(--duration) linear both;
   will-change: transform;
 }
 
+@keyframes marquee-pass {
+  from {
+    transform: translateX(100vw);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
 .marquee-row-reverse .marquee-track {
-  animation-name: marquee-scroll-reverse;
+  animation-name: marquee-pass-reverse;
+}
+
+@keyframes marquee-pass-reverse {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100vw);
+  }
 }
 
 .marquee-copy {
@@ -123,22 +143,6 @@
 .marquee-separator {
   padding-left: 2.4rem;
   color: #6e2020;
-}
-
-@keyframes marquee-scroll {
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@keyframes marquee-scroll-reverse {
-  from {
-    transform: translateX(-50%);
-  }
-
-  to {
-    transform: translateX(0);
-  }
 }
 
 .wish-form-wrap {
@@ -386,9 +390,5 @@
   .marquee-track {
     animation: none;
     transform: none;
-  }
-
-  .marquee-copy + .marquee-copy {
-    display: none;
   }
 }
