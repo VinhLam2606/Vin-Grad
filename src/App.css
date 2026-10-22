@@ -96,31 +96,40 @@
 .marquee-track {
   display: flex;
   width: max-content;
-  animation: marquee-pass var(--duration) linear both;
+}
+
+.marquee-track-animated {
+  animation: marquee-loop var(--duration) linear infinite;
+  animation-delay: var(--phase);
   will-change: transform;
 }
 
-@keyframes marquee-pass {
+.marquee-track-static {
+  width: 100%;
+  justify-content: center;
+}
+
+.marquee-row-reverse .marquee-track-animated {
+  animation-name: marquee-loop-reverse;
+}
+
+@keyframes marquee-loop {
   from {
-    transform: translateX(100vw);
+    transform: translateX(0);
   }
 
   to {
-    transform: translateX(-100%);
+    transform: translateX(-50%);
   }
 }
 
-.marquee-row-reverse .marquee-track {
-  animation-name: marquee-pass-reverse;
-}
-
-@keyframes marquee-pass-reverse {
+@keyframes marquee-loop-reverse {
   from {
-    transform: translateX(-100%);
+    transform: translateX(-50%);
   }
 
   to {
-    transform: translateX(100vw);
+    transform: translateX(0);
   }
 }
 
@@ -390,5 +399,14 @@
   .marquee-track {
     animation: none;
     transform: none;
+  }
+
+  .marquee-track-animated {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .marquee-copy-clone {
+    display: none;
   }
 }
