@@ -67,7 +67,7 @@ function MarqueeRow({ messages, rowIndex }) {
     <div
       className={`marquee-row${isReverse ? ' marquee-row-reverse' : ''}`}
       style={{
-        top: `${((rowIndex + 0.5) / messages.length) * 100}%`,
+        top: `${((rowIndex + 0.5) / ROW_COUNT) * 100}%`,
         '--duration': `${motion.duration}s`,
         '--delay': `${rowIndex * 0.35}s`,
       }}
