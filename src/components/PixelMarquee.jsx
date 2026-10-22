@@ -10,7 +10,7 @@ const SAMPLE_WISHES = [
 
 const ROW_COUNT = 8
 const MAX_MARQUEE_MESSAGE_LENGTH = 88
-const MARQUEE_SPEED_PX_PER_SECOND = 24
+const MARQUEE_SPEED_PX_PER_SECOND = 38
 
 function shortenWish(name, message) {
   const text = `${name}: ${message}`
@@ -31,9 +31,9 @@ function MarqueeRow({ messages, rowIndex }) {
     function measureCopy() {
       const copyWidth = copy.scrollWidth
       const viewportWidth = window.innerWidth
-      const shouldLoop = copyWidth > viewportWidth * 1.05
-
-      const duration = shouldLoop ? copyWidth / MARQUEE_SPEED_PX_PER_SECOND : 0
+      const shouldLoop = copyWidth > viewportWidth
+      const distance = shouldLoop ? copyWidth : viewportWidth + copyWidth
+      const duration = distance / MARQUEE_SPEED_PX_PER_SECOND
       setMotion((currentMotion) => {
         if (currentMotion.shouldLoop === shouldLoop && currentMotion.duration === duration) {
           return currentMotion
@@ -58,12 +58,12 @@ function MarqueeRow({ messages, rowIndex }) {
     <div
       className={`marquee-row${isReverse ? ' marquee-row-reverse' : ''}`}
       style={{
-        top: `${((rowIndex + 0.5) / ROW_COUNT) * 100}%`,
+        top: `${((rowIndex + 0.5) / messages.length) * 100}%`,
         '--duration': `${motion.duration}s`,
-        '--phase': `${-(rowIndex / ROW_COUNT) * motion.duration}s`,
+        '--delay': `${rowIndex * 0.35}s`,
       }}
     >
-      <div className={`marquee-track${motion.shouldLoop ? ' marquee-track-animated' : ' marquee-track-static'}`}>
+      <div className={`marquee-track${motion.shouldLoop ? ' marquee-track-seamless' : ' marquee-track-pass'}`}>
         <span className="marquee-copy" ref={copyRef}>
           {messages.map((message) => (
             <span className="marquee-phrase" key={message}>
@@ -101,7 +101,7 @@ function PixelMarquee({ wishes }) {
 
   return (
     <div className="marquee-layer" aria-hidden="true">
-      {lanes.map((laneMessages, rowIndex) => (
+      {lanes.filter((laneMessages) => laneMessages.length > 0).map((laneMessages, rowIndex) => (
         <MarqueeRow key={rowIndex} messages={laneMessages} rowIndex={rowIndex} />
       ))}
     </div>

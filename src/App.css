@@ -98,39 +98,42 @@
   width: max-content;
 }
 
-.marquee-track-animated {
-  animation: marquee-loop var(--duration) linear infinite;
-  animation-delay: var(--phase);
+.marquee-track-seamless {
+  animation: marquee-loop var(--duration) linear var(--delay) infinite;
   will-change: transform;
 }
 
-.marquee-track-static {
-  width: 100%;
-  justify-content: center;
+.marquee-track-pass {
+  animation: marquee-pass var(--duration) linear var(--delay) infinite;
+  will-change: transform;
 }
 
-.marquee-row-reverse .marquee-track-animated {
+.marquee-row-reverse .marquee-track-seamless {
   animation-name: marquee-loop-reverse;
 }
 
-@keyframes marquee-loop {
-  from {
-    transform: translateX(0);
-  }
+.marquee-row-reverse .marquee-track-pass {
+  animation-name: marquee-pass-reverse;
+}
 
-  to {
-    transform: translateX(-50%);
-  }
+@keyframes marquee-loop {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 @keyframes marquee-loop-reverse {
-  from {
-    transform: translateX(-50%);
-  }
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
 
-  to {
-    transform: translateX(0);
-  }
+@keyframes marquee-pass {
+  from { transform: translateX(100vw); }
+  to { transform: translateX(-100%); }
+}
+
+@keyframes marquee-pass-reverse {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100vw); }
 }
 
 .marquee-copy {
@@ -399,11 +402,6 @@
   .marquee-track {
     animation: none;
     transform: none;
-  }
-
-  .marquee-track-animated {
-    width: 100%;
-    justify-content: center;
   }
 
   .marquee-copy-clone {
